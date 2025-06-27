@@ -196,12 +196,12 @@ class VendedorEventsController: UIViewController, UITableViewDelegate, UITableVi
     }
     
     func clasificarEventosParaVendedor(_ vendedor: Vendedores) {
-        // Limpiar
+        // Limpiar las secciones
         eventosPorSeccion = ["disponibles": [], "solicitado": [], "aceptado": [], "cancelado": []]
 
         let contexto = DataManager.shared.persistentContainer.viewContext
 
-        // Todos los eventos publicados
+        // Obtener todos los eventos que están publicados (son "disponibles" en general)
         let fetchRequest: NSFetchRequest<Eventos> = Eventos.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "estatus == %@", "publicado")
 
@@ -210,28 +210,27 @@ class VendedorEventsController: UIViewController, UITableViewDelegate, UITableVi
             return
         }
 
-        // Relación Inscripcion del vendedor
-        if let inscripciones = vendedor.eventos as? Set<Inscripcion> {
-            for inscripcion in inscripciones {
-                if let evento = inscripcion.evento, let estado = inscripcion.estatus {
-                    eventosPorSeccion[estado, default: []].append(evento)
-                }
-            }
+        // Obtener las inscripciones del vendedor
+        let inscripcionesDelVendedor = (vendedor.inscripciones as? Set<Inscripcion>) ?? []
 
-            // Los disponibles son eventos publicados que no están en ninguna inscripción
-            let inscritos = inscripciones.compactMap { $0.evento }
-            let disponibles = todosPublicados.filter { !inscritos.contains($0) }
-            eventosPorSeccion["disponibles"] = disponibles
-        } else {
-            eventosPorSeccion["disponibles"] = todosPublicados
-        }
-        if let inscripciones = vendedor.inscripciones as? Set<Inscripcion> {
-            print("📌 Inscripciones encontradas para vendedor \(vendedor.id): \(inscripciones.count)")
-            
-            for inscripcion in inscripciones {
-                print("🟡 Evento: \(inscripcion.evento?.nombre ?? "sin nombre") - Estatus: \(inscripcion.estatus ?? "sin estatus")")
+        // Clasificar las inscripciones existentes
+        for inscripcion in inscripcionesDelVendedor {
+            if let evento = inscripcion.evento, let estado = inscripcion.estatus {
+                eventosPorSeccion[estado, default: []].append(evento)
             }
+        }
+
+        // Calcular disponibles: publicados que NO tengan inscripción con este vendedor
+        let eventosYaInscritos = inscripcionesDelVendedor.compactMap { $0.evento }
+        let eventosDisponiblesParaVendedor = todosPublicados.filter { !eventosYaInscritos.contains($0) }
+        eventosPorSeccion["disponibles"] = eventosDisponiblesParaVendedor
+
+        // Debug
+        print("✅ Eventos clasificados para vendedor \(vendedor.id):")
+        for (seccion, eventos) in eventosPorSeccion {
+            print(" - \(seccion): \(eventos.count)")
         }
     }
+
 
 }

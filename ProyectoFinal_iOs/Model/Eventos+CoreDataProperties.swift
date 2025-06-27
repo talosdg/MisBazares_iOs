@@ -21,8 +21,9 @@ extension Eventos {
     @NSManaged public var lugar: String?
     @NSManaged public var id: Int16
     @NSManaged public var nombre: String?
-    @NSManaged public var estatus: String?
+    @NSManaged public var estatus: String?  
     @NSManaged public var vendedor: NSSet?
+    @NSManaged public var inscripciones: NSSet? // nueva entidad
 
 }
 

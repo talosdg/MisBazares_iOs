@@ -24,6 +24,8 @@ extension Vendedores {
     @NSManaged public var estado: String?
     @NSManaged public var nombre: String?
     @NSManaged public var tel: String?
+   
+    @NSManaged public var inscripciones: NSSet? // en vendedores
 
 }
 
