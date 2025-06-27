@@ -310,7 +310,7 @@
             </objects>
             <point key="canvasLocation" x="2228" y="-865"/>
         </scene>
-        <!--Vendedores-->
+        <!--Sellers Controller-->
         <scene sceneID="cg7-Si-2b6">
             <objects>
                 <viewController id="SEZ-9P-Lid" customClass="SellersController" customModule="ProyectoFinal_iOs" customModuleProvider="target" sceneMemberID="viewController">
@@ -366,14 +366,14 @@
                         <viewLayoutGuide key="safeArea" id="SzY-up-8oS"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Vendedores" image="person.3.fill" catalog="system" id="oSF-eG-aIv"/>
+                    <navigationItem key="navigationItem" id="8ms-Au-EJn"/>
                     <connections>
                         <outlet property="VendedoresList" destination="eTw-hh-M4E" id="Qlf-ZL-kkF"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Na5-xj-45A" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2228" y="538"/>
+            <point key="canvasLocation" x="3153.4351145038167" y="537.32394366197184"/>
         </scene>
         <!--Salir-->
         <scene sceneID="VRS-Ur-1WP">
@@ -468,13 +468,32 @@
                     <connections>
                         <segue destination="yIB-RD-eGo" kind="relationship" relationship="viewControllers" id="C7c-hz-5jD"/>
                         <segue destination="s8V-3P-F4V" kind="relationship" relationship="viewControllers" id="kfb-xV-0At"/>
-                        <segue destination="SEZ-9P-Lid" kind="relationship" relationship="viewControllers" id="nLx-cU-Q0t"/>
+                        <segue destination="l46-Ih-p1J" kind="relationship" relationship="viewControllers" id="nLx-cU-Q0t"/>
                         <segue destination="Lng-yS-jVB" kind="relationship" relationship="viewControllers" id="PJ8-JI-uBp"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="paQ-ux-2xh" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="963" y="-865"/>
+        </scene>
+        <!--Vendedores-->
+        <scene sceneID="Jxg-YA-kYd">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="l46-Ih-p1J" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Vendedores" image="person.3.fill" catalog="system" id="oSF-eG-aIv"/>
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="cl5-P0-Kag">
+                        <rect key="frame" x="0.0" y="59" width="393" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="SEZ-9P-Lid" kind="relationship" relationship="rootViewController" id="6rP-7C-b4D"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="XmO-IR-whB" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2226.7175572519081" y="537.32394366197184"/>
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>

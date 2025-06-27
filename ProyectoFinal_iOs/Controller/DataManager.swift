@@ -297,7 +297,15 @@ class DataManager : NSObject{
         }
     }
 
-        
+    func cancelarInscripcion(vendedor: Vendedores, de evento: Eventos) {
+        let contexto = persistentContainer.viewContext
+        let request: NSFetchRequest<Inscripcion> = Inscripcion.fetchRequest()
+        request.predicate = NSPredicate(format: "vendedor == %@ AND evento == %@", vendedor, evento)
+        if let resultado = try? contexto.fetch(request).first {
+            contexto.delete(resultado)
+            try? contexto.save()
+        }
+    }
         
          
     func crearInscripcion(para vendedor: Vendedores, al evento: Eventos, estatus: String = "solicitado") {
@@ -329,7 +337,8 @@ class DataManager : NSObject{
             print("❌ Error al crear inscripción: \(error)")
         }
     }
-    
+
+
     func eventosDisponiblesParaVendedor(_ vendedor: Vendedores) -> [Eventos] {
         let context = persistentContainer.viewContext
 
@@ -360,8 +369,52 @@ class DataManager : NSObject{
             return []
         }
     }
-
-
     
+    func obtenerEstatusInscripcion(vendedor: Vendedores, evento: Eventos) -> String? {
+        let contexto = persistentContainer.viewContext
+        let request: NSFetchRequest<Inscripcion> = Inscripcion.fetchRequest()
+        request.predicate = NSPredicate(format: "vendedor == %@ AND evento == %@", vendedor, evento)
+        request.fetchLimit = 1
+
+        if let resultado = try? contexto.fetch(request).first {
+            return resultado.estatus
+        }
+        return nil
+    }
+    
+    func aprobarInscripcion(_ inscripcion: Inscripcion) {
+            let contexto = persistentContainer.viewContext
+            inscripcion.estatus = "aceptado"
+            saveContext()
+        }
+        
+    func cancelarInscripcion(_ inscripcion: Inscripcion) {
+        let contexto = persistentContainer.viewContext
+        inscripcion.estatus = "cancelado"
+        saveContext()
+    }
+    
+    func obtenerInscripcionesSolicitadas() -> [Inscripcion] {
+        let contexto = persistentContainer.viewContext
+        let request: NSFetchRequest<Inscripcion> = Inscripcion.fetchRequest()
+        request.predicate = NSPredicate(format: "estatus == %@", "solicitado")
+        do {
+            return try contexto.fetch(request)
+        } catch {
+            print("❗️Error al buscar inscripciones: \(error)")
+            return []
+        }
+    }
+    func inscripcionesSolicitadasParaVendedor(_ vendedor: Vendedores) -> [Inscripcion] {
+        let contexto = persistentContainer.viewContext
+        let request: NSFetchRequest<Inscripcion> = Inscripcion.fetchRequest()
+        request.predicate = NSPredicate(format: "vendedor == %@ AND estatus == %@", vendedor, "solicitado")
+        do {
+            return try contexto.fetch(request)
+        } catch {
+            print("❗️Error buscando inscripciones: \(error)")
+            return []
+        }
+    }
 
 }

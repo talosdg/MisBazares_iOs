@@ -11,6 +11,17 @@ class SellersController:  UIViewController, UITableViewDelegate, UITableViewData
     
     
     var vendedores = [Vendedores]()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        VendedoresList.dataSource = self
+        VendedoresList.delegate = self
+      
+        // 🔁 Cargar eventos desde Core Data
+        vendedores = DataManager.shared.todosLosVendedores()
+        VendedoresList.reloadData()
+ 
+    }
 
     @IBOutlet weak var VendedoresList: UITableView!
     
@@ -25,53 +36,97 @@ class SellersController:  UIViewController, UITableViewDelegate, UITableViewData
     /* LISTADO DE VENDEDORES EN EL TABLE VIEW*/
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier:"sellersCell", for:indexPath)
-        let m = vendedores[indexPath.row]
-        cell.textLabel?.text = m.nombre ?? "Vendedor sin nombre"
+        let vendedor = vendedores[indexPath.row]
+        cell.textLabel?.text = vendedor.nombre ?? "Vendedor sin nombre"
+        
+        // Verificar si tiene inscripciones solicitadas
+        let solicitudes = DataManager.shared.inscripcionesSolicitadasParaVendedor(vendedor)
+        if solicitudes.count > 0 {
+            cell.detailTextLabel?.text = "⚠️ \(solicitudes.count) solicitud(es)"
+            cell.accessoryType = .disclosureIndicator
+            cell.backgroundColor = UIColor.systemYellow.withAlphaComponent(0.2)
+        } else {
+            cell.detailTextLabel?.text = nil
+            cell.accessoryType = .none
+            cell.backgroundColor = UIColor.systemBackground
+        }
+        
         return cell
     }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let vendedor = vendedores[indexPath.row]
+        let solicitudes = DataManager.shared.inscripcionesSolicitadasParaVendedor(vendedor)
+        
+        if solicitudes.isEmpty {
+            let alerta = UIAlertController(title: "Sin solicitudes", message: "Este vendedor no tiene solicitudes pendientes.", preferredStyle: .alert)
+            alerta.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alerta, animated: true)
+            return
+        }else{
+            
+            print("Antes de abrir solicitados ")
+            print("navigationController es nil? \(navigationController == nil)")
+            let detalleVC = SellerRequestsController()
+            detalleVC.vendedor = vendedor
+            detalleVC.solicitudes = solicitudes
+            navigationController?.pushViewController(detalleVC, animated: true)
+            print("Despues de solicitados")
+            
+        }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        VendedoresList.dataSource = self
-        VendedoresList.delegate = self
-      
-        // 🔁 Cargar eventos desde Core Data
-        vendedores = DataManager.shared.todosLosVendedores()
-        VendedoresList.reloadData()
- 
     }
-    /*
-    @IBAction func cambiaListado(_ sender: UISegmentedControl) {
-        print("Segment cambiado: \(sender.selectedSegmentIndex)")
-        actualizar(numEstatus: sender.selectedSegmentIndex)
-    }
-    
-    
-    
-    
-    
-    @objc
-    func actualizar(numEstatus: Int) {
+
+    class SellerRequestsController: UIViewController, UITableViewDataSource, UITableViewDelegate {
         
-        switch numEstatus {
-          case 0:
-              eventos = DataManager.shared.todosLosEventos(estatus: "publicado")
-          case 1:
-              eventos = DataManager.shared.todosLosEventos(estatus: "pendiente")
-          case 2:
-              eventos = DataManager.shared.todosLosEventos(estatus: "terminado")
-          case 3:
-              eventos = DataManager.shared.todosLosEventos(estatus: "cancelado")
-          default:
-              eventos = []
-          }
-          
-          EventosList.reloadData()
+        var vendedor: Vendedores!
+        var solicitudes: [Inscripcion] = []
         
+        let tableView = UITableView()
+        
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            title = vendedor.nombre ?? "Solicitudes"
+            
+            view.addSubview(tableView)
+            tableView.frame = view.bounds
+            tableView.dataSource = self
+            tableView.delegate = self
+            tableView.register(UITableViewCell.self, forCellReuseIdentifier: "requestCell")
+        }
+        
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+            return solicitudes.count
+        }
+        
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "requestCell", for: indexPath)
+            let inscripcion = solicitudes[indexPath.row]
+            cell.textLabel?.text = "Evento: \(inscripcion.evento?.nombre ?? "Sin nombre")"
+            return cell
+        }
+        
+        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+            let inscripcion = solicitudes[indexPath.row]
+            
+            let alerta = UIAlertController(title: "Acción", message: "Aprobar o Cancelar inscripción", preferredStyle: .alert)
+            alerta.addAction(UIAlertAction(title: "Aprobar", style: .default) { _ in
+                DataManager.shared.aprobarInscripcion(inscripcion)
+                self.recargarSolicitudes()
+            })
+            alerta.addAction(UIAlertAction(title: "Cancelar", style: .destructive) { _ in
+                DataManager.shared.cancelarInscripcion(inscripcion)
+                self.recargarSolicitudes()
+            })
+            alerta.addAction(UIAlertAction(title: "Cerrar", style: .cancel))
+            present(alerta, animated: true)
+        }
+        
+        func recargarSolicitudes() {
+            solicitudes = DataManager.shared.inscripcionesSolicitadasParaVendedor(vendedor)
+            tableView.reloadData()
+        }
     }
-*/
-    
-    
+
     
     
 }

@@ -15,8 +15,9 @@ class EventDetailViewController: UIViewController {
     var elVendedor: Vendedores!
     var detalle: EventDetailView!
     
-    
     var esNuevoEvento: Bool = false
+    
+    var estatusInscripcion: String?
     
     var vendedores: [Vendedores] = []
     
@@ -72,25 +73,16 @@ class EventDetailViewController: UIViewController {
             detalle.btnCrearPublicar.isHidden = true
         }
 
-        //guard let vendedor = sellerActual, let evento = elEvento else { return }
-        
-        print("sellerActual: \(String(describing: sellerActual?.id))")
-        
-        
         detalle.btnInscripcion.setTitle("Solicitar evento", for: .normal)
         detalle.btnInscripcion.backgroundColor = .amber
         
+        if let vendedor = sellerActual, let evento = elEvento {
+            estatusInscripcion = DataManager.shared.obtenerEstatusInscripcion(vendedor: vendedor, evento: evento)
+            print("Estatus inscripción vendedor: \(estatusInscripcion ?? "ninguno")")
+        }
 
-        /*
-        let estabaInscrito = vendedor.eventos?.contains(evento) ?? false
+        actualizarEstadoBotonInscripcion()
 
-        if estabaInscrito {
-            detalle.btnInscripcion.setTitle("Cancelar inscripción", for: .normal)
-            detalle.btnInscripcion.backgroundColor = .darkGray
-        } else {
-            detalle.btnInscripcion.setTitle("Inscribirme", for: .normal)
-            detalle.btnInscripcion.backgroundColor = .midgreen
-        }*/
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -373,34 +365,78 @@ class EventDetailViewController: UIViewController {
         guard let vendedor = sellerActual else { return false }
         return vendedor.eventos?.contains(elEvento!) ?? false
     }
+    
     @objc
-    func solicitar(){
+    func solicitar() {
+        guard let vendedor = sellerActual, let evento = elEvento else { return }
+
+        let contexto = DataManager.shared.persistentContainer.viewContext
+        let request: NSFetchRequest<Inscripcion> = Inscripcion.fetchRequest()
+        request.predicate = NSPredicate(format: "vendedor == %@ AND evento == %@", vendedor, evento)
         
-        print("func solicitar en EvDeViController a solicitarInscripcion() en DataManager")
-        let nombreEvento = elEvento.nombre ?? ""
-        let ac = UIAlertController(title: "Solicitando", message:"¿Desea solicitar su inscripción al evento \(nombreEvento)?", preferredStyle: .alert)
-        let action = UIAlertAction(title: "SI", style: .destructive) {
-            alertaction in
-
-            
-            if let vendedor = self.sellerActual, let evento = self.elEvento {
-                print("alert aceptado SE CUMPLE CONDICIÓN")
-                DataManager.shared.solicitarInscripcion(vendedor: vendedor, al: evento)
-                NotificationCenter.default.post(name: Notification.Name("ACTUALIZA_SOLICITUD"), object: nil)
-                
-                // Callback de refresco
-                self.onInscripcionCambiada?()
-                
-
-                self.dismiss(animated: true)
+        if let inscripcionExistente = try? contexto.fetch(request).first {
+            // Ya existe inscripción → cancelar
+            let estatusActual = inscripcionExistente.estatus ?? ""
+            if estatusActual == "solicitado" || estatusActual == "aceptado" {
+                let ac = UIAlertController(title: "Cancelar", message: "¿Desea cancelar su \(estatusActual)?", preferredStyle: .alert)
+                ac.addAction(UIAlertAction(title: "Sí", style: .destructive) { _ in
+                    DataManager.shared.cancelarInscripcion(vendedor: vendedor, de: evento)
+                    self.onInscripcionCambiada?()
+                    self.dismiss(animated: true)
+                })
+                ac.addAction(UIAlertAction(title: "No", style: .cancel))
+                self.present(ac, animated: true)
+            } else {
+                // Otros estados
+                print("⚠️ Estado no cancelable: \(estatusActual)")
             }
+        } else {
+            // No existe inscripción → solicitar
+            let ac = UIAlertController(title: "Solicitar", message: "¿Desea solicitar su inscripción al evento \(evento.nombre ?? "")?", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Sí", style: .destructive) { _ in
+                DataManager.shared.solicitarInscripcion(vendedor: vendedor, al: evento)
+                self.onInscripcionCambiada?()
+                self.dismiss(animated: true)
+            })
+            ac.addAction(UIAlertAction(title: "No", style: .cancel))
+            self.present(ac, animated: true)
         }
-        let action2 = UIAlertAction(title: "NO", style:.cancel)
-        ac.addAction(action)
-        ac.addAction(action2)
-        self.present(ac, animated: true)
     }
+   
+    
+    func actualizarEstadoBotonInscripcion() {
+        guard let vendedor = sellerActual, let evento = elEvento else {
+            detalle.btnInscripcion.isHidden = true
+            return
+        }
 
+        // Buscar inscripción existente
+        let contexto = DataManager.shared.persistentContainer.viewContext
+        let request: NSFetchRequest<Inscripcion> = Inscripcion.fetchRequest()
+        request.predicate = NSPredicate(format: "vendedor == %@ AND evento == %@", vendedor, evento)
+        
+        if let inscripcion = try? contexto.fetch(request).first, let estatus = inscripcion.estatus {
+            switch estatus {
+            case "solicitado":
+                detalle.btnInscripcion.setTitle("Cancelar solicitud", for: .normal)
+                detalle.btnInscripcion.backgroundColor = .darkrose
+            case "aceptado":
+                detalle.btnInscripcion.setTitle("Cancelar inscripción", for: .normal)
+                detalle.btnInscripcion.backgroundColor = .darkGray
+            case "cancelado":
+                detalle.btnInscripcion.setTitle("Cancelado", for: .normal)
+                detalle.btnInscripcion.backgroundColor = .systemGray
+                detalle.btnInscripcion.isEnabled = false
+            default:
+                detalle.btnInscripcion.setTitle("Solicitar inscripción", for: .normal)
+                detalle.btnInscripcion.backgroundColor = .amber
+            }
+        } else {
+            // No existe inscripción aún
+            detalle.btnInscripcion.setTitle("Solicitar inscripción", for: .normal)
+            detalle.btnInscripcion.backgroundColor = .amber
+        }
+    }
 }
 
 
