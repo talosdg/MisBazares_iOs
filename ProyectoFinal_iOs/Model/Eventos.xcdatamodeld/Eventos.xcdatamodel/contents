@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="23G93" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="Eventos" representedClassName="Eventos" syncable="YES">
+    <entity name="Eventos" representedClassName=".Eventos" syncable="YES">
         <attribute name="estatus" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lugar" optional="YES" attributeType="String"/>
@@ -9,12 +9,12 @@
         <relationship name="inscripciones" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Inscripcion" inverseName="evento" inverseEntity="Inscripcion"/>
         <relationship name="vendedor" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Vendedores" inverseName="eventos" inverseEntity="Vendedores"/>
     </entity>
-    <entity name="Inscripcion" representedClassName="Inscripcion" syncable="YES">
+    <entity name="Inscripcion" representedClassName=".Inscripcion" syncable="YES">
         <attribute name="estatus" optional="YES" attributeType="String"/>
         <relationship name="evento" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Eventos" inverseName="inscripciones" inverseEntity="Eventos"/>
         <relationship name="vendedor" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Vendedores" inverseName="inscripciones" inverseEntity="Vendedores"/>
     </entity>
-    <entity name="Vendedores" representedClassName="Vendedores" syncable="YES">
+    <entity name="Vendedores" representedClassName=".Vendedores" syncable="YES">
         <attribute name="apellido_materno" optional="YES" attributeType="String"/>
         <attribute name="apellido_paterno" optional="YES" attributeType="String"/>
         <attribute name="ciudad" optional="YES" attributeType="String"/>

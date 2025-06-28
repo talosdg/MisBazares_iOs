@@ -2,23 +2,28 @@
 //  Eventos+CoreDataClass.swift
 //  ProyectoFinal_iOs
 //
-//  Created by Edgar Vargas on 12/06/25.
+//  Created by Edgar Vargas on 27/06/25.
 //
 //
 
 import Foundation
 import CoreData
 
-@objc(Eventos)
+
 public class Eventos: NSManagedObject {
-    func inicializa(_ eventosVO:EventosVO){
+    @nonobjc public override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?) {
+        super.init(entity: entity, insertInto: context)
+    }
+    
+    @nonobjc public init(context: NSManagedObjectContext) {
+        let entity = NSEntityDescription.entity(forEntityName: "Eventos", in: context)!
+        super.init(entity: entity, insertInto: context)
+    }
+        func inicializa(_ eventosVO: EventosVO) {
         self.id = eventosVO.id
         self.nombre = eventosVO.nombre
         self.estatus = eventosVO.estatus
         self.lugar = eventosVO.lugar
         self.plazas = eventosVO.plazas
-        
-        
     }
-
 }

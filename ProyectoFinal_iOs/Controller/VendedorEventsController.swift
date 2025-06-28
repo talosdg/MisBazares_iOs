@@ -10,12 +10,9 @@ import CoreData
 
 class VendedorEventsController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
-
-    
     var eventosPorSeccion: [String: [Eventos]] = [:] // para el vendedor
     let seccionesOrdenadas = ["disponibles", "solicitado", "aceptado", "cancelado"] // diccionario eventos vendedor
     
-
     @IBOutlet weak var tableView: UITableView!
     
     override func viewDidLoad() {
@@ -56,24 +53,17 @@ class VendedorEventsController: UIViewController, UITableViewDelegate, UITableVi
             switch clave {
              
                 case "solicitado":
-                    cell.accessoryView = Iconos.icono(.pendiente, color: .darkrose, size: 28)
-                    cell.backgroundColor = UIColor.rosewood
+                cell.accessoryView = Iconos.icono(.pendiente, color: .amber, size: 24)
+                    cell.backgroundColor = UIColor.amber.withAlphaComponent(0.1)
                 case "cancelado":
-                    cell.accessoryView = Iconos.icono(.cancelado, color: .systemRed, size: 28)
-                    cell.backgroundColor = UIColor.red.withAlphaComponent(0.10)
+                    cell.accessoryView = Iconos.icono(.cancelado, color: .systemRed, size: 24)
+                    cell.backgroundColor = UIColor.red.withAlphaComponent(0.1)
                 case "aceptado":
-                    cell.accessoryView = Iconos.icono(.inscrito, color: .midblue, size: 28)
-                    cell.backgroundColor = UIColor.midblue.withAlphaComponent(0.1)
+                    cell.accessoryView = Iconos.icono(.inscrito, color: .midgreen, size: 24)
+                    cell.backgroundColor = UIColor.green.withAlphaComponent(0.1)
                 default:
-                    cell.accessoryView = Iconos.icono(.solicitar, color: .gray, size: 28)
-                    cell.backgroundColor = .systemGray6
-            }
-
-            // inscrito pero cancelado por el admin
-            if evento?.estatus == "cancelado" {
-                // obreescribe color e icono
-                cell.backgroundColor = cell.backgroundColor?.withAlphaComponent(0.4)
-                cell.accessoryView = Iconos.icono(.cancelado, color: .systemRed, size: 28)
+                    cell.accessoryView = Iconos.icono(.solicitar, color: .midblue, size: 24)
+                    cell.backgroundColor = UIColor.cyan.withAlphaComponent(0.1)
             }
 
             return cell

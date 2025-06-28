@@ -9,6 +9,7 @@
 import UIKit
 import CoreData
 
+
 class EventDetailViewController: UIViewController {
    
     var elEvento: Eventos!

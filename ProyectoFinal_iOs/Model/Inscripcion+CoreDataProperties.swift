@@ -2,7 +2,7 @@
 //  Inscripcion+CoreDataProperties.swift
 //  ProyectoFinal_iOs
 //
-//  Created by Edgar Vargas on 25/06/25.
+//  Created by Edgar Vargas on 27/06/25.
 //
 //
 

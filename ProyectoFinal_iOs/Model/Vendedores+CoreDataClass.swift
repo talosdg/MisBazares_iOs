@@ -2,16 +2,16 @@
 //  Vendedores+CoreDataClass.swift
 //  ProyectoFinal_iOs
 //
-//  Created by Edgar Vargas on 12/06/25.
+//  Created by Edgar Vargas on 27/06/25.
 //
 //
 
 import Foundation
 import CoreData
 
-@objc(Vendedores)
-public class Vendedores: NSManagedObject {
 
+public class Vendedores: NSManagedObject {
+    
     func inicializa(_ vendedoresVO: VendedoresVO, context: NSManagedObjectContext) {
         self.id = vendedoresVO.id ?? 0
         self.nombre = vendedoresVO.nombre
@@ -38,6 +38,5 @@ public class Vendedores: NSManagedObject {
         req.fetchLimit = 1
         return try? context.fetch(req).first
     }
+
 }
-
-
