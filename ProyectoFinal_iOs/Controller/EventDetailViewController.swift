@@ -8,13 +8,20 @@
 
 import UIKit
 import CoreData
+import CoreLocation
 
 
 class EventDetailViewController: UIViewController {
+    
    
     var elEvento: Eventos!
     var elVendedor: Vendedores!
     var detalle: EventDetailView!
+    let datePickerInicio = UIDatePicker()
+    let datePickerTermino = UIDatePicker()
+
+
+
     
     var esNuevoEvento: Bool = false
     
@@ -32,6 +39,9 @@ class EventDetailViewController: UIViewController {
     var estatusOriginal = ""
     var lugarOriginal = ""
     var plazasOriginal = ""
+    var fechaInicioOriginal = ""
+    var fechaTerminoOriginal = ""
+    
     
     var onSoloLectura = false
     
@@ -49,6 +59,18 @@ class EventDetailViewController: UIViewController {
         detalle = EventDetailView(frame:view.bounds.insetBy(dx: 40, dy: 40))
         view.addSubview(detalle)
         
+        
+        datePickerInicio.datePickerMode = .date
+        datePickerInicio.preferredDatePickerStyle = .wheels
+        datePickerInicio.addTarget(self, action: #selector(fechaInicioCambiada), for: .valueChanged)
+        detalle.txtFechaInicio.inputView = datePickerInicio
+
+        datePickerTermino.datePickerMode = .date
+        datePickerTermino.preferredDatePickerStyle = .wheels
+        datePickerTermino.addTarget(self, action: #selector(fechaTerminoCambiada), for: .valueChanged)
+        detalle.txtFechaTermino.inputView = datePickerTermino
+
+        
         //print("👀 Controller padre: \(String(describing: self.presentingViewController))")
         // Detectar cambios por guardar
         detalle.txtNombre.addTarget(self, action: #selector(verificarCambios), for: .editingChanged)
@@ -64,6 +86,19 @@ class EventDetailViewController: UIViewController {
             detalle.txtLugar.text = evento.lugar
             detalle.txtPlazas.text = "\(evento.plazas)"
             detalle.txtEstatus.text = evento.estatus
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "dd/MM/yyyy"
+
+            if let fechaInicio = elEvento.fechaInicio {
+                detalle.txtFechaInicio.text = dateFormatter.string(from: fechaInicio)
+                datePickerInicio.date = fechaInicio
+            }
+
+            if let fechaTermino = elEvento.fechaTermino {
+                detalle.txtFechaTermino.text = dateFormatter.string(from: fechaTermino)
+                datePickerTermino.date = fechaTermino
+            }
+
         }
 
         if onSoloLectura {
@@ -94,6 +129,13 @@ class EventDetailViewController: UIViewController {
         estatusOriginal = detalle.txtEstatus.text ?? ""
         lugarOriginal = detalle.txtLugar.text ?? ""
         plazasOriginal = detalle.txtPlazas.text ?? ""
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd/MM/yyyy"
+        fechaInicioOriginal = detalle.txtFechaInicio.text ?? ""
+        fechaTerminoOriginal = detalle.txtFechaTermino.text ?? ""
+
+        
+        detalle.txtEstatus.isHidden = true // simpre oculto
         
         if esNuevoEvento {
             detalle.txtNombre.text = ""
@@ -101,12 +143,8 @@ class EventDetailViewController: UIViewController {
             detalle.txtLugar.text = ""
             detalle.txtPlazas.text = ""
 
-            detalle.txtEstatus.isHidden = true
-            
-          
             detalle.inhabilitado(es: false) // Habilita edición
        
-
             // Configurar y agregar botón Crear y dejar pendiente
             detalle.configurarBoton(detalle.btnCrear, titulo: "Crear y dejar pendiente", color: .opaqueturqoise)
             detalle.stackView.addArrangedSubview(detalle.btnCrear)
@@ -125,9 +163,14 @@ class EventDetailViewController: UIViewController {
         detalle.txtEstatus.text = elEvento.estatus ?? ""
         detalle.txtLugar.text = elEvento.lugar ?? ""
         detalle.txtPlazas.text = "\(elEvento.plazas)"
-        
+
         let estatusActual = elEvento.estatus ?? "pendiente"
+
+       
+
+        // 👇 Solo se ejecuta si NO está cancelado
         detalle.agregarBotones(estatus: estatusActual)
+
 
         // Habilita edición si el evento está "pendiente" o "publicado"
         if estatusActual == "pendiente" || estatusActual == "publicado" {
@@ -147,12 +190,53 @@ class EventDetailViewController: UIViewController {
         
         //detalle.btnCambiaInscripcion.addTarget(self, action: #selector(solicitarInscripcion), for: .touchUpInside)
         detalle.btnInscripcion.addTarget(self, action: #selector(solicitar), for: .touchUpInside)
+        
+        // BOTON DEL MAPA > FALTAN TODAS LAS CONFIGURACIONES DE ARRIBA
+        detalle.btnVerMapa.addTarget(self, action: #selector(mostrarMapa), for: .touchUpInside)
+        
+    }
+ 
+    @objc func mostrarMapa() {
+        print("➡️ Mostrando mapa")
 
+        let mapaVC = MapaEventoViewController()
+        mapaVC.modalPresentationStyle = .fullScreen
+
+        let lat = elEvento.latitud
+        let lon = elEvento.longitud
+
+        if lat != 0.0 && lon != 0.0 {
+            mapaVC.coordenadaEvento = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        } else {
+            mapaVC.direccionEvento = elEvento.lugar ?? ""
+        }
+        
+        mapaVC.nombreEvento = elEvento.nombre ?? "Evento sin nombre"
+        mapaVC.lugarEvento = elEvento.lugar ?? "Dirección desconocida"
+
+
+        present(mapaVC, animated: true)
     }
     
+    @objc func fechaInicioCambiada() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd/MM/yyyy"
+        detalle.txtFechaInicio.text = dateFormatter.string(from: datePickerInicio.date)
+        verificarCambios()
+    }
+
+    @objc func fechaTerminoCambiada() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd/MM/yyyy"
+        detalle.txtFechaTermino.text = dateFormatter.string(from: datePickerTermino.date)
+        verificarCambios()
+    }
+
+
+       
     @objc func crearEvento() {
         guard let nombre = detalle.txtNombre.text, !nombre.isEmpty,
-              let estatus = detalle.txtEstatus.text,
+             // let estatus = detalle.txtEstatus.text,    OMITIDO POR INTERFAZ
               let lugar = detalle.txtLugar.text,
               let plazasStr = detalle.txtPlazas.text, let plazas = Int16(plazasStr) else {
             let alerta = UIAlertController(title: "Faltan datos", message: "Revisa los campos", preferredStyle: .alert)
@@ -163,12 +247,14 @@ class EventDetailViewController: UIViewController {
 
         let confirm = UIAlertController(title: "Confirmar", message: "El evento '\(nombre)' será creado pendiente de ser publicado", preferredStyle: .alert)
         confirm.addAction(UIAlertAction(title: "Sí", style: .default, handler: { _ in
-            DataManager.shared.agregarEvento(
-                nombre: nombre,
-                estatus: estatus,
-                lugar: lugar,
-                plazas: plazas
-            )
+            
+            self.elEvento.nombre = nombre
+            self.elEvento.estatus = "pendiente"  // Fuerza estado "pendiente"
+            self.elEvento.lugar = lugar
+            self.elEvento.plazas = plazas
+
+            DataManager.shared.saveContext()
+
             self.dismiss(animated: true)
         }))
         confirm.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
@@ -176,6 +262,10 @@ class EventDetailViewController: UIViewController {
     }
 
     @objc func crearPublicarEvento() {
+        
+        print("📅 Inicio: \(String(describing: elEvento.fechaInicio))")
+        print("📅 Término: \(String(describing: elEvento.fechaTermino))")
+        
         guard let nombre = detalle.txtNombre.text, !nombre.isEmpty,
               let lugar = detalle.txtLugar.text,
               let plazasStr = detalle.txtPlazas.text, let plazas = Int16(plazasStr) else {
@@ -193,12 +283,17 @@ class EventDetailViewController: UIViewController {
 
         confirm.addAction(UIAlertAction(title: "Sí", style: .default, handler: { _ in
             // Aquí se establece el estatus en "publicado"
-            DataManager.shared.agregarEvento(
-                nombre: nombre,
-                estatus: "publicado",
-                lugar: lugar,
-                plazas: plazas
-            )
+            
+            self.elEvento.nombre = nombre
+            self.elEvento.estatus = "publicado"
+            self.elEvento.lugar = lugar
+            self.elEvento.plazas = plazas
+            self.elEvento.fechaInicio = self.datePickerInicio.date
+            self.elEvento.fechaTermino = self.datePickerTermino.date
+
+
+            DataManager.shared.saveContext()
+
             self.dismiss(animated: true)
         }))
 
@@ -226,6 +321,9 @@ class EventDetailViewController: UIViewController {
             self.elEvento.nombre = nombre
             self.elEvento.lugar = lugar
             self.elEvento.plazas = plazas
+            self.elEvento.fechaInicio = self.datePickerInicio.date
+            self.elEvento.fechaTermino = self.datePickerTermino.date
+
             // El estatus no se cambia aquí
             DataManager.shared.saveContext()
             
@@ -236,23 +334,68 @@ class EventDetailViewController: UIViewController {
 
         confirm.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
         self.present(confirm, animated: true)
-    }
+        /** COORDENDADAS MAPA **/
+        obtenerCoordenadasDesdeDireccion(lugar) { coordenadas in
+                DispatchQueue.main.async {
+                    self.elEvento.nombre = nombre
+                    self.elEvento.lugar = lugar
+                    self.elEvento.plazas = plazas
+                    
+                    if let coord = coordenadas {
+                        self.elEvento.latitud = coord.latitude
+                        self.elEvento.longitud = coord.longitude
+                        print("📍 Coordenadas guardadas: \(coord.latitude), \(coord.longitude)")
+                    } else {
+                        print("⚠️ No se pudieron obtener coordenadas")
+                    }
 
-    @objc
-    func publicarEvento () {
-        let nombreEvento = elEvento.nombre ?? ""
-        let ac = UIAlertController(title: "Publicando", message:"Se publicará el evento \(nombreEvento)?", preferredStyle: .alert)
-        let action = UIAlertAction(title: "SI", style: .destructive) {
-            alertaction in
-            DataManager.shared.publicarEvento(self.elEvento)
-            self.dismiss(animated: true)
-        }
-        let action2 = UIAlertAction(title: "NO", style:.cancel)
-        ac.addAction(action)
-        ac.addAction(action2)
-        self.present(ac, animated: true)
+                    DataManager.shared.saveContext()
+                    NotificationCenter.default.post(name: Notification.Name("EVENTO_EDITADO"), object: nil)
+                    self.dismiss(animated: true)
+                }
+            }
+        
+        
         
     }
+    @objc
+    func publicarEvento () {
+        guard let nombre = detalle.txtNombre.text, !nombre.isEmpty,
+              let lugar = detalle.txtLugar.text,
+              let plazasStr = detalle.txtPlazas.text,
+              let plazas = Int16(plazasStr) else {
+            let alerta = UIAlertController(title: "Faltan datos", message: "Revisa los campos", preferredStyle: .alert)
+            alerta.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alerta, animated: true)
+            return
+        }
+
+        let ac = UIAlertController(
+            title: "Publicando",
+            message: "¿Deseas publicar el evento '\(nombre)'?",
+            preferredStyle: .alert
+        )
+
+        let action = UIAlertAction(title: "Sí", style: .default) { _ in
+            // 🧠 Guardar cambios antes de publicar
+            self.elEvento.nombre = nombre
+            self.elEvento.lugar = lugar
+            self.elEvento.plazas = plazas
+            self.elEvento.estatus = "publicado"
+
+            DataManager.shared.saveContext()
+
+            NotificationCenter.default.post(name: Notification.Name("EVENTO_EDITADO"), object: nil)
+
+            self.dismiss(animated: true)
+        }
+
+        let cancel = UIAlertAction(title: "No", style: .cancel)
+        ac.addAction(action)
+        ac.addAction(cancel)
+        self.present(ac, animated: true)
+    }
+
     @objc
     func despublicarEvento () {
         print("click en despublicar")
@@ -353,10 +496,15 @@ class EventDetailViewController: UIViewController {
         let nombre = detalle.txtNombre.text ?? ""
         let lugar = detalle.txtLugar.text ?? ""
         let plazas = detalle.txtPlazas.text ?? ""
+        let fechaInicio = detalle.txtFechaInicio.text ?? ""
+        let fechaTermino = detalle.txtFechaTermino.text ?? ""
 
         let huboCambios = (nombre != nombreOriginal) ||
-                          (lugar != lugarOriginal) ||
-                          (plazas != plazasOriginal)
+                           (lugar != lugarOriginal) ||
+                           (plazas != plazasOriginal) ||
+                           (fechaInicio != fechaInicioOriginal) ||
+                           (fechaTermino != fechaTerminoOriginal)
+
 
         detalle.btnGuardarCambios.isEnabled = huboCambios
         detalle.btnGuardarCambios.alpha = huboCambios ? 1.0 : 0.5
@@ -438,6 +586,24 @@ class EventDetailViewController: UIViewController {
             detalle.btnInscripcion.backgroundColor = .amber
         }
     }
+    
+    func obtenerCoordenadasDesdeDireccion(_ direccion: String, completion: @escaping (CLLocationCoordinate2D?) -> Void) {
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(direccion) { placemarks, error in
+            if let error = error {
+                print("❌ Error al geocodificar: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+
+            if let location = placemarks?.first?.location {
+                completion(location.coordinate)
+            } else {
+                completion(nil)
+            }
+        }
+    }
+
 }
 
 

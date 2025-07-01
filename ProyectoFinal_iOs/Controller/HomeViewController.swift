@@ -10,11 +10,18 @@ import UIKit
 class HomeViewController: UIViewController {
 
     @IBAction func btGenerarEvento(_ sender: Any) {
-        let vc = EventDetailViewController()
-        vc.modalPresentationStyle = .automatic
-        vc.elEvento = Eventos() // dummy, no importa si se modifica luego
-        vc.esNuevoEvento = true
-        self.present(vc, animated: true)
+        
+        
+        let contexto = DataManager.shared.persistentContainer.viewContext
+          let nuevoEvento = Eventos(context: contexto)
+          
+          let vc = EventDetailViewController()
+          vc.modalPresentationStyle = .automatic
+          vc.elEvento = nuevoEvento
+          vc.esNuevoEvento = true
+          self.present(vc, animated: true)
+        // print("Si se crea el evento vacio: \(String(describing: vc.elEvento))")
+
     }
     
     @IBAction func btVerEventos(_ sender: Any) {

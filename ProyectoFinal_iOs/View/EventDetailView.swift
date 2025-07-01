@@ -16,6 +16,10 @@ class EventDetailView: UIView {
     let txtEstatus = UITextField()
     let txtLugar = UITextField()
     let txtPlazas = UITextField()
+    let txtFechaInicio = UITextField()
+    let txtFechaTermino = UITextField()
+    
+    let btnVerMapa = UIButton(type: .custom)
     
     let btnCrear = UIButton(type: .custom)
     let btnCrearPublicar = UIButton(type: .custom)
@@ -68,6 +72,8 @@ class EventDetailView: UIView {
         setupTextField(txtEstatus, placeholder: "Estatus")
         setupTextField(txtLugar, placeholder: "Lugar")
         setupTextField(txtPlazas, placeholder: "Plazas")
+        setupTextField(txtFechaInicio, placeholder: "Fecha de inicio")
+        setupTextField(txtFechaTermino, placeholder: "Fecha de término")
     }
     
     private func setupTextField(_ textField: UITextField, placeholder: String) {
@@ -77,8 +83,9 @@ class EventDetailView: UIView {
     }
     
     func agregarBotones(estatus: String) {
+ 
         // Limpiar botones previamente agregados
-        for view in [btnPublicar, btnCrearPublicar, btnDespublicar, btnCancelar, btnEliminar, btnGuardarCambios] {
+        for view in [btnVerMapa, btnPublicar, btnCrearPublicar, btnDespublicar, btnCancelar, btnEliminar, btnGuardarCambios] {
             stackView.removeArrangedSubview(view)
             view.removeFromSuperview()
         }
@@ -86,6 +93,10 @@ class EventDetailView: UIView {
         switch estatus {
             
         case "pendiente":
+            
+            configurarBoton(btnVerMapa, titulo: "Ver en mapa", color: .systemBlue)
+            stackView.addArrangedSubview(btnVerMapa)
+            
             configurarBoton(btnPublicar, titulo: "Publicar evento", color: .midgreen)
             configurarBoton(btnCancelar, titulo: "Cancelar evento", color: .amber)
             configurarBoton(btnGuardarCambios, titulo: "Guardar cambios", color: .opaqueturqoise)
@@ -94,7 +105,11 @@ class EventDetailView: UIView {
             stackView.addArrangedSubview(btnGuardarCambios)
             inhabilitado(es: false)
         case "publicado":
+            configurarBoton(btnVerMapa, titulo: "Ver en mapa", color: .systemBlue)
+            stackView.addArrangedSubview(btnVerMapa)
+            
             if SessionManager.esAdmin{
+
                 configurarBoton(btnDespublicar, titulo: "Despublicar", color: .amber)
                 configurarBoton(btnGuardarCambios, titulo: "Guardar cambios", color: .opaqueturqoise)
                 stackView.addArrangedSubview(btnDespublicar)
@@ -109,13 +124,33 @@ class EventDetailView: UIView {
             configurarBoton(btnEliminar, titulo: "Eliminar", color: .red)
             stackView.addArrangedSubview(btnEliminar)
             inhabilitado(es: true)
+            
+            
         default:
        
             break
         }
+       
+        //  bloquea edición y oculta botones antes de agregarlos
+        if !SessionManager.esAdmin {
+            print("No mostrar botones")
+            self.inhabilitado(es: true)
+            self.btnGuardarCambios.isHidden = true
+            
+            self.btnCrearPublicar.isHidden = true
+            self.btnPublicar.isHidden = true
+            self.btnDespublicar.isHidden = true
+            self.btnCancelar.isHidden = true
+            self.btnEliminar.isHidden = true
+
+  
+        }
+        
     }
     func inhabilitado(es: Bool){
-        let campos = [txtNombre, txtEstatus, txtLugar, txtPlazas]
+        print("deshabilita campos")
+    
+        let campos = [txtNombre, txtEstatus, txtLugar, txtPlazas, txtFechaInicio, txtFechaTermino]
 
         for campo in campos {
             campo.isEnabled = !es

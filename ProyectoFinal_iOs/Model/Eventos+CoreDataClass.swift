@@ -2,7 +2,7 @@
 //  Eventos+CoreDataClass.swift
 //  ProyectoFinal_iOs
 //
-//  Created by Edgar Vargas on 27/06/25.
+//  Created by Edgar Vargas on 30/06/25.
 //
 //
 
@@ -25,5 +25,9 @@ public class Eventos: NSManagedObject {
         self.estatus = eventosVO.estatus
         self.lugar = eventosVO.lugar
         self.plazas = eventosVO.plazas
+        self.latitud = eventosVO.latitud ?? 0
+        self.longitud = eventosVO.longitud ?? 0
+        self.fechaInicio = eventosVO.fechaInicio
+        self.fechaTermino = eventosVO.fechaTermino
     }
 }

@@ -16,6 +16,10 @@ struct EventosVO: Codable {
     let plazas: Int16
     let tipo: String?
     let vendedor: String?
+    let latitud: Double?
+    let longitud: Double?
+    let fechaInicio: Date?
+    let fechaTermino: Date?
 }
 
 

@@ -53,7 +53,7 @@ class VendedorEventsController: UIViewController, UITableViewDelegate, UITableVi
             switch clave {
              
                 case "solicitado":
-                cell.accessoryView = Iconos.icono(.pendiente, color: .amber, size: 24)
+                    cell.accessoryView = Iconos.icono(.pendiente, color: .amber, size: 24)
                     cell.backgroundColor = UIColor.amber.withAlphaComponent(0.1)
                 case "cancelado":
                     cell.accessoryView = Iconos.icono(.cancelado, color: .systemRed, size: 24)
@@ -101,6 +101,15 @@ class VendedorEventsController: UIViewController, UITableViewDelegate, UITableVi
                 self?.tableView.reloadData()
             }
         }
+        
+        print("estatus \(String(describing: detalleVC.elEvento.estatus))")
+        
+        if detalleVC.elEvento.estatus == "cancelado"{
+            
+            detalleVC.detalle.inhabilitado(es: true)
+        }
+        
+        
 
         self.present(detalleVC, animated: true, completion: nil)
     }
@@ -125,32 +134,48 @@ class VendedorEventsController: UIViewController, UITableViewDelegate, UITableVi
 
         let contexto = DataManager.shared.persistentContainer.viewContext
 
-        // 1. Obtener eventos publicados (solo estos pueden estar 'disponibles')
+        // 1️⃣ Obtener todos los eventos "publicados" (para la sección "disponibles")
         let fetchRequest: NSFetchRequest<Eventos> = Eventos.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "estatus == %@", "publicado")
         
-        guard let todosPublicados = try? contexto.fetch(fetchRequest) else {
+        let publicados: [Eventos]
+        do {
+            publicados = try contexto.fetch(fetchRequest)
+        } catch {
             print("❌ Error al obtener eventos publicados")
             return
         }
 
-        // 2. Todas las inscripciones del vendedor (pueden incluir eventos cancelados)
+        // 2️⃣ Todas las inscripciones del vendedor
         let inscripcionesDelVendedor = (vendedor.inscripciones as? Set<Inscripcion>) ?? []
 
         for inscripcion in inscripcionesDelVendedor {
-            if let evento = inscripcion.evento,
-               let estado = inscripcion.estatus {
-                // 👇 Incluye cualquier evento (aunque cancelado), en su sección correspondiente
-                eventosPorSeccion[estado, default: []].append(evento)
+            guard let evento = inscripcion.evento else { continue }
+
+            let eventoEstatusAdmin = evento.estatus ?? ""
+            let inscripcionEstatus = inscripcion.estatus ?? ""
+
+            // ✅ Regla: si el evento NO está publicado → lo veo como "cancelado"
+            if eventoEstatusAdmin != "publicado" {
+                eventosPorSeccion["cancelado", default: []].append(evento)
+            } else {
+                // Solo si está publicado respeto la inscripción
+                eventosPorSeccion[inscripcionEstatus, default: []].append(evento)
             }
         }
 
-        // 3. Los disponibles solo deben ser eventos publicados y NO inscritos aún
+        // 3️⃣ Calcular "disponibles" = publicados - eventos ya inscritos
         let eventosYaInscritos = inscripcionesDelVendedor.compactMap { $0.evento }
-        let eventosDisponiblesParaVendedor = todosPublicados.filter { !eventosYaInscritos.contains($0) }
-        eventosPorSeccion["disponibles"] = eventosDisponiblesParaVendedor
+        let disponibles = publicados.filter { !eventosYaInscritos.contains($0) }
+        eventosPorSeccion["disponibles"] = disponibles
 
-        print("✅ Eventos clasificados para vendedor \(vendedor.id):")
+        // 4️⃣ Eliminar duplicados en cada sección
+        for (key, eventos) in eventosPorSeccion {
+            eventosPorSeccion[key] = Array(Set(eventos))
+        }
+
+        // 5️⃣ DEBUG
+        print("✅ Resultado de clasificar eventos para vendedor \(vendedor.id):")
         for (seccion, eventos) in eventosPorSeccion {
             print(" - \(seccion): \(eventos.count)")
         }

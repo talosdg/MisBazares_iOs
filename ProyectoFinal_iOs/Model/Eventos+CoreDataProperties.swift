@@ -2,7 +2,7 @@
 //  Eventos+CoreDataProperties.swift
 //  ProyectoFinal_iOs
 //
-//  Created by Edgar Vargas on 27/06/25.
+//  Created by Edgar Vargas on 30/06/25.
 //
 //
 
@@ -21,8 +21,12 @@ extension Eventos {
     @NSManaged public var lugar: String?
     @NSManaged public var nombre: String?
     @NSManaged public var plazas: Int16
+    @NSManaged public var latitud: Double
+    @NSManaged public var longitud: Double
     @NSManaged public var inscripciones: NSSet?
     @NSManaged public var vendedor: NSSet?
+    @NSManaged public var fechaInicio: Date?
+    @NSManaged public var fechaTermino: Date?
 
 }
 
