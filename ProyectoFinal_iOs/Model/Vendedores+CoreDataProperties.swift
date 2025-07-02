@@ -22,6 +22,7 @@ extension Vendedores {
     @NSManaged public var email: String?
     @NSManaged public var estado: String?
     @NSManaged public var id: Int16
+    @NSManaged public var rol: Int16
     @NSManaged public var nombre: String?
     @NSManaged public var tel: String?
     @NSManaged public var eventos: NSSet?

@@ -27,7 +27,10 @@ public class Eventos: NSManagedObject {
         self.plazas = eventosVO.plazas
         self.latitud = eventosVO.latitud ?? 0
         self.longitud = eventosVO.longitud ?? 0
+        self.duenoAdmin = eventosVO.duenoAdmin
+            
         self.fechaInicio = eventosVO.fechaInicio
         self.fechaTermino = eventosVO.fechaTermino
+
     }
 }

@@ -14,6 +14,7 @@ public class Vendedores: NSManagedObject {
     
     func inicializa(_ vendedoresVO: VendedoresVO, context: NSManagedObjectContext) {
         self.id = vendedoresVO.id ?? 0
+        self.rol = vendedoresVO.rol ?? 0
         self.nombre = vendedoresVO.nombre
         self.apellido_paterno = vendedoresVO.apellidoPaterno
         self.apellido_materno = vendedoresVO.apellidoMaterno

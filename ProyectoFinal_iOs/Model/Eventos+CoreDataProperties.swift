@@ -27,6 +27,8 @@ extension Eventos {
     @NSManaged public var vendedor: NSSet?
     @NSManaged public var fechaInicio: Date?
     @NSManaged public var fechaTermino: Date?
+    @NSManaged public var duenoAdmin: String?
+    
 
 }
 

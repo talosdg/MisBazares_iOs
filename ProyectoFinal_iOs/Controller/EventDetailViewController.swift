@@ -59,16 +59,24 @@ class EventDetailViewController: UIViewController {
         detalle = EventDetailView(frame:view.bounds.insetBy(dx: 40, dy: 40))
         view.addSubview(detalle)
         
-        
+        detalle.txtPlazas.keyboardType = .numberPad
+
         datePickerInicio.datePickerMode = .date
         datePickerInicio.preferredDatePickerStyle = .wheels
         datePickerInicio.addTarget(self, action: #selector(fechaInicioCambiada), for: .valueChanged)
         detalle.txtFechaInicio.inputView = datePickerInicio
+        detalle.txtFechaInicio.inputAccessoryView = createToolbar(selectorDone: #selector(confirmarFechaInicio), selectorCancel: #selector(cancelarPicker))
+        detalle.txtFechaInicio.isUserInteractionEnabled = true
+        detalle.txtFechaInicio.addTarget(self, action: #selector(mostrarDatePickerInicio), for: .editingDidBegin)
+
+        
 
         datePickerTermino.datePickerMode = .date
         datePickerTermino.preferredDatePickerStyle = .wheels
         datePickerTermino.addTarget(self, action: #selector(fechaTerminoCambiada), for: .valueChanged)
         detalle.txtFechaTermino.inputView = datePickerTermino
+        detalle.txtFechaTermino.inputAccessoryView = createToolbar(selectorDone: #selector(confirmarFechaTermino), selectorCancel: #selector(cancelarPicker))
+
 
         
         //print("👀 Controller padre: \(String(describing: self.presentingViewController))")
@@ -116,6 +124,7 @@ class EventDetailViewController: UIViewController {
             estatusInscripcion = DataManager.shared.obtenerEstatusInscripcion(vendedor: vendedor, evento: evento)
             print("Estatus inscripción vendedor: \(estatusInscripcion ?? "ninguno")")
         }
+
 
         actualizarEstadoBotonInscripcion()
 
@@ -178,7 +187,13 @@ class EventDetailViewController: UIViewController {
         } else {
             detalle.inhabilitado(es: true)
         }
-
+        
+        if !SessionManager.esAdmin{
+            //print("no es admin")
+            detalle.inhabilitado(es: true)
+        }
+        
+        
         // Agregar target a botones
         detalle.btnCrear.addTarget(self, action:#selector(crearEvento), for:.touchUpInside)
         detalle.btnPublicar.addTarget(self, action:#selector(publicarEvento), for:.touchUpInside)
@@ -252,6 +267,9 @@ class EventDetailViewController: UIViewController {
             self.elEvento.estatus = "pendiente"  // Fuerza estado "pendiente"
             self.elEvento.lugar = lugar
             self.elEvento.plazas = plazas
+            self.elEvento.fechaInicio = self.datePickerInicio.date
+            self.elEvento.fechaTermino = self.datePickerTermino.date
+            self.elEvento.duenoAdmin = SessionManager.usuarioActual
 
             DataManager.shared.saveContext()
 
@@ -262,10 +280,6 @@ class EventDetailViewController: UIViewController {
     }
 
     @objc func crearPublicarEvento() {
-        
-        print("📅 Inicio: \(String(describing: elEvento.fechaInicio))")
-        print("📅 Término: \(String(describing: elEvento.fechaTermino))")
-        
         guard let nombre = detalle.txtNombre.text, !nombre.isEmpty,
               let lugar = detalle.txtLugar.text,
               let plazasStr = detalle.txtPlazas.text, let plazas = Int16(plazasStr) else {
@@ -290,11 +304,13 @@ class EventDetailViewController: UIViewController {
             self.elEvento.plazas = plazas
             self.elEvento.fechaInicio = self.datePickerInicio.date
             self.elEvento.fechaTermino = self.datePickerTermino.date
+            self.elEvento.duenoAdmin = SessionManager.usuarioActual
 
 
             DataManager.shared.saveContext()
 
             self.dismiss(animated: true)
+
         }))
 
         confirm.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
@@ -302,12 +318,28 @@ class EventDetailViewController: UIViewController {
     }
     
     @objc func guardarCambios() {
-        guard let nombre = detalle.txtNombre.text, !nombre.isEmpty,
-              let lugar = detalle.txtLugar.text,
-              let plazasStr = detalle.txtPlazas.text, let plazas = Int16(plazasStr) else {
-            let alerta = UIAlertController(title: "Faltan datos", message: "Revisa los campos", preferredStyle: .alert)
+        print("En guardarCambios Inicio: \(String(describing: elEvento.fechaInicio))")
+        print("En guardarCambios Término: \(String(describing: elEvento.fechaTermino))")
+        
+        if datePickerTermino.date < datePickerInicio.date {
+            let alerta = UIAlertController(
+                title: "Error",
+                message: "La fecha de término no puede ser anterior a la de inicio.",
+                preferredStyle: .alert
+            )
             alerta.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alerta, animated: true)
+            return
+        }
+
+
+        guard let nombre = detalle.txtNombre.text, !nombre.isEmpty,
+              let lugar = detalle.txtLugar.text,
+              let plazasStr = detalle.txtPlazas.text,
+              let plazas = Int16(plazasStr) else {
+            let alerta = UIAlertController(title: "Faltan datos", message: "Revisa los campos", preferredStyle: .alert)
+            alerta.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alerta, animated: true)
             return
         }
 
@@ -317,47 +349,83 @@ class EventDetailViewController: UIViewController {
             preferredStyle: .alert
         )
 
-        confirm.addAction(UIAlertAction(title: "Guardar", style: .default, handler: { _ in
-            self.elEvento.nombre = nombre
-            self.elEvento.lugar = lugar
-            self.elEvento.plazas = plazas
-            self.elEvento.fechaInicio = self.datePickerInicio.date
-            self.elEvento.fechaTermino = self.datePickerTermino.date
+        confirm.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
 
-            // El estatus no se cambia aquí
-            DataManager.shared.saveContext()
-            
-            NotificationCenter.default.post(name: Notification.Name("EVENTO_EDITADO"), object: nil)
-            
-            self.dismiss(animated: true)
+        confirm.addAction(UIAlertAction(title: "Guardar", style: .default, handler: { _ in
+            self.actualizarEvento(
+                nombre: nombre,
+                lugar: lugar,
+                plazas: plazas
+            )
         }))
 
-        confirm.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
-        self.present(confirm, animated: true)
-        /** COORDENDADAS MAPA **/
-        obtenerCoordenadasDesdeDireccion(lugar) { coordenadas in
-                DispatchQueue.main.async {
-                    self.elEvento.nombre = nombre
-                    self.elEvento.lugar = lugar
-                    self.elEvento.plazas = plazas
-                    
-                    if let coord = coordenadas {
-                        self.elEvento.latitud = coord.latitude
-                        self.elEvento.longitud = coord.longitude
-                        print("📍 Coordenadas guardadas: \(coord.latitude), \(coord.longitude)")
-                    } else {
-                        print("⚠️ No se pudieron obtener coordenadas")
-                    }
-
-                    DataManager.shared.saveContext()
-                    NotificationCenter.default.post(name: Notification.Name("EVENTO_EDITADO"), object: nil)
-                    self.dismiss(animated: true)
-                }
-            }
-        
-        
-        
+        present(confirm, animated: true)
     }
+    @objc func confirmarFechaInicio() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        detalle.txtFechaInicio.text = formatter.string(from: datePickerInicio.date)
+        detalle.txtFechaInicio.resignFirstResponder()
+        verificarCambios()
+    }
+
+    @objc func confirmarFechaTermino() {
+        let fechaInicio = datePickerInicio.date
+        let fechaTermino = datePickerTermino.date
+
+        if fechaTermino < fechaInicio {
+            // Mostrar alerta
+            let alerta = UIAlertController(
+                title: "Fecha inválida",
+                message: "La fecha de término no puede ser anterior a la de inicio.",
+                preferredStyle: .alert
+            )
+            alerta.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alerta, animated: true)
+
+            return
+        }
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        detalle.txtFechaTermino.text = formatter.string(from: fechaTermino)
+        detalle.txtFechaTermino.resignFirstResponder()
+        verificarCambios()
+    }
+
+
+    @objc func cancelarPicker() {
+        view.endEditing(true)
+    }
+
+
+    private func actualizarEvento(nombre: String, lugar: String, plazas: Int16) {
+        // Obtener coordenadas primero
+        obtenerCoordenadasDesdeDireccion(lugar) { coordenadas in
+            DispatchQueue.main.async {
+                self.elEvento.nombre = nombre
+                self.elEvento.lugar = lugar
+                self.elEvento.plazas = plazas
+                self.elEvento.fechaInicio = self.datePickerInicio.date
+                self.elEvento.fechaTermino = self.datePickerTermino.date
+
+                if let coord = coordenadas {
+                    self.elEvento.latitud = coord.latitude
+                    self.elEvento.longitud = coord.longitude
+                    print("📍 Coordenadas guardadas: \(coord.latitude), \(coord.longitude)")
+                } else {
+                    print("⚠️ No se pudieron obtener coordenadas")
+                }
+
+                DataManager.shared.saveContext()
+                NotificationCenter.default.post(name: Notification.Name("EVENTO_EDITADO"), object: nil)
+                self.dismiss(animated: true)
+            }
+        }
+    }
+
+    
+    
     @objc
     func publicarEvento () {
         guard let nombre = detalle.txtNombre.text, !nombre.isEmpty,
@@ -377,11 +445,16 @@ class EventDetailViewController: UIViewController {
         )
 
         let action = UIAlertAction(title: "Sí", style: .default) { _ in
+            
+            print("En pub Inicio: \(String(describing: self.elEvento.fechaInicio))")
+            print("En pub Término: \(String(describing: self.elEvento.fechaTermino))")
             // 🧠 Guardar cambios antes de publicar
             self.elEvento.nombre = nombre
             self.elEvento.lugar = lugar
             self.elEvento.plazas = plazas
             self.elEvento.estatus = "publicado"
+            self.elEvento.fechaInicio = self.datePickerInicio.date
+            self.elEvento.fechaTermino = self.datePickerTermino.date
 
             DataManager.shared.saveContext()
 
@@ -587,6 +660,13 @@ class EventDetailViewController: UIViewController {
         }
     }
     
+    @objc func mostrarDatePickerInicio() {
+        detalle.txtFechaInicio.inputView = datePickerInicio
+        detalle.txtFechaInicio.inputAccessoryView = toolbar
+        detalle.txtFechaInicio.becomeFirstResponder()
+    }
+
+    
     func obtenerCoordenadasDesdeDireccion(_ direccion: String, completion: @escaping (CLLocationCoordinate2D?) -> Void) {
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(direccion) { placemarks, error in
@@ -603,7 +683,17 @@ class EventDetailViewController: UIViewController {
             }
         }
     }
+    func createToolbar(selectorDone: Selector, selectorCancel: Selector) -> UIToolbar {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
 
+        let cancel = UIBarButtonItem(title: "Cancelar", style: .plain, target: self, action: selectorCancel)
+        let space = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let done = UIBarButtonItem(title: "Hecho", style: .done, target: self, action: selectorDone)
+
+        toolbar.setItems([cancel, space, done], animated: false)
+        return toolbar
+    }
 }
 
 

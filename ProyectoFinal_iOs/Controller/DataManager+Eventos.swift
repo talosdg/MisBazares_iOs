@@ -13,32 +13,39 @@ extension DataManager {
     func llenaBD() {
         let ud = UserDefaults.standard
         if ud.integer(forKey: "BD-OK") != 1 {
-            if let url = URL (string:"https://chocodelizzia.com/data/eventos.json") {
-                let sesion = URLSession(configuration:.default)
+            if let url = URL(string: "https://chocodelizzia.com/data/eventos.json") {
+                let sesion = URLSession(configuration: .default)
                 let task = sesion.dataTask(with: URLRequest(url: url)) { datos, respuesta, err in
-                    if err != nil && datos == nil {
-                        print ("no se pudo descargar el feed de eventos")
+                    if err != nil || datos == nil {
+                        print("❌ No se pudo descargar el feed de eventos")
                         return
                     }
                     do {
-            
-                        let arreglo = try JSONDecoder().decode([EventosVO].self, from: datos!)
-                        print("Cantidad de eventos decodificados: \(arreglo.count)")
+                        // 👇 AQUI CONFIGURAS EL FORMATTER UNA SOLA VEZ
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+                        dateFormatter.dateFormat = "dd/MM/yyyy"
+                        
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+
+                        // 👇 Y YA DECODIFICAS USANDO ESE DECODER
+                        let arreglo = try decoder.decode([EventosVO].self, from: datos!)
+                        print("✅ Cantidad de eventos decodificados: \(arreglo.count)")
+
                         self.guardaEventos(arreglo)
                         self.obtenVendedores()
-       
                     }
                     catch {
-                       print ("algo falló \(error.localizedDescription)")
+                        print("❌ Algo falló \(error.localizedDescription)")
                     }
                 }
                 task.resume()
             }
-           ud.setValue(1, forKey: "BD-OK")
-            
+            ud.setValue(1, forKey: "BD-OK")
         }
-
     }
+
 
     func guardaEventos(_ eventos: [EventosVO]) {
         guard let entidadDesc = NSEntityDescription.entity(forEntityName: "Eventos", in: persistentContainer.viewContext) else { return }
@@ -82,8 +89,21 @@ extension DataManager {
 
     func todosLosEventos(estatus: String) -> [Eventos] {
         let request = Eventos.fetchRequest()
-        request.predicate = NSPredicate(format: "estatus == %@", estatus)
-        return (try? persistentContainer.viewContext.fetch(request)) ?? []
+ 
+        if SessionManager.esAdmin {
+              // Solo sus eventos
+            request.predicate = NSPredicate(format: "estatus == %@ AND duenoAdmin == %@", estatus, SessionManager.usuarioActual)
+          } else {
+              // Vendedores ven todos publicados
+              request.predicate = NSPredicate(format: "estatus == %@", estatus)
+          }
+          do {
+              return try persistentContainer.viewContext.fetch(request)
+          } catch {
+              print("Error al obtener eventos: \(error)")
+              return []
+          }
+   
     }
     
     func publicarEvento(_ evento: Eventos) {

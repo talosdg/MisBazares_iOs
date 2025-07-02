@@ -9,6 +9,7 @@ import Foundation
 
 struct VendedoresVO: Codable {
     let id: Int16?
+    let rol: Int16?
     let nombre: String?
     let apellidoPaterno: String?
     let apellidoMaterno: String?

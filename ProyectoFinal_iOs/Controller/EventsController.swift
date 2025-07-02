@@ -58,6 +58,11 @@ class EventsController:  UIViewController, UITableViewDelegate, UITableViewDataS
   
         NotificationCenter.default.addObserver(self, selector: #selector(actualizaSolicitados), name: Notification.Name("ACTUALIZA_SOLICITUD"), object: nil)
     }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        actualizar(elEstatus: estatusActual)
+    }
+
     @objc
     func actualizar(elEstatus: String  = "publicado" ){
         eventos = DataManager.shared.todosLosEventos(estatus: elEstatus)

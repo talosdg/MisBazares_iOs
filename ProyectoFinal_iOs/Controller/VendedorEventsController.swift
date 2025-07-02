@@ -11,7 +11,7 @@ import CoreData
 class VendedorEventsController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     var eventosPorSeccion: [String: [Eventos]] = [:] // para el vendedor
-    let seccionesOrdenadas = ["disponibles", "solicitado", "aceptado", "cancelado"] // diccionario eventos vendedor
+    let seccionesOrdenadas = ["aceptado", "disponibles", "solicitado",  "cancelado"] // diccionario eventos vendedor
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -82,6 +82,7 @@ class VendedorEventsController: UIViewController, UITableViewDelegate, UITableVi
         detalleVC.esNuevoEvento = false
         detalleVC.onSoloLectura = true
         detalleVC.modalPresentationStyle = .automatic
+        
 
         // avisando refresco por inscripción/desinscripción
         detalleVC.onCambioInscripcion = { [weak self] in
@@ -130,7 +131,7 @@ class VendedorEventsController: UIViewController, UITableViewDelegate, UITableVi
     }
     
     func clasificarEventosParaVendedor(_ vendedor: Vendedores) {
-        eventosPorSeccion = ["disponibles": [], "solicitado": [], "aceptado": [], "cancelado": []]
+        eventosPorSeccion = ["aceptado": [], "solicitado": [], "disponibles": [], "cancelado": []]
 
         let contexto = DataManager.shared.persistentContainer.viewContext
 

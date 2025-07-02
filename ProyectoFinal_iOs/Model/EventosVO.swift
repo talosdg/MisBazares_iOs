@@ -20,6 +20,7 @@ struct EventosVO: Codable {
     let longitud: Double?
     let fechaInicio: Date?
     let fechaTermino: Date?
+    let duenoAdmin: String?
 }
 
 

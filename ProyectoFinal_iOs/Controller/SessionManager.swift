@@ -14,10 +14,9 @@ class SessionManager {
     static let shared = SessionManager() // patrón singleton
     
     static var esAdmin: Bool = false
-    
+    static var usuarioActual = ""
     var vendedorActual: Vendedores?
-
-    
+  
     private init() {}
     
     func logout(from controller: UIViewController) {

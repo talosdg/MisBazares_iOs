@@ -57,16 +57,13 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
-                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sl9-7b-B1d">
-                                <rect key="frame" x="171" y="324" width="49" height="31"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </switch>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="Rosewood"/>
                     </view>
                     <connections>
-                        <outlet property="swAdmin" destination="sl9-7b-B1d" id="bSd-GU-i2T"/>
+                        <outlet property="txtPassword" destination="e1V-gL-yv1" id="hjo-zD-CXW"/>
+                        <outlet property="txtUsuario" destination="Z2H-Vo-rL9" id="gky-3l-o8Q"/>
                         <segue destination="yIB-RD-eGo" kind="show" identifier="adminloged" id="eT9-Qr-s7C"/>
                     </connections>
                 </viewController>

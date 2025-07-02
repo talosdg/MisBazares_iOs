@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="23G93" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="Eventos" representedClassName=".Eventos" syncable="YES">
+        <attribute name="duenoAdmin" optional="YES" attributeType="String"/>
         <attribute name="estatus" optional="YES" attributeType="String"/>
         <attribute name="fechaInicio" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="fechaTermino" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -26,6 +27,7 @@
         <attribute name="estado" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="nombre" optional="YES" attributeType="String"/>
+        <attribute name="rol" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="tel" optional="YES" attributeType="String"/>
         <relationship name="eventos" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Eventos" inverseName="vendedor" inverseEntity="Eventos"/>
         <relationship name="inscripciones" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Inscripcion" inverseName="vendedor" inverseEntity="Inscripcion"/>
