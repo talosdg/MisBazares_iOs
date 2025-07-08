@@ -37,7 +37,7 @@ class HomeViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         // TODO: - Generar el resumen de la Base de Datos
-        tvResumen.text = DataManager.shared.resumenEventos()
+        tvResumen.text = "" //DataManager.shared.resumenEventos()
        
     }
     

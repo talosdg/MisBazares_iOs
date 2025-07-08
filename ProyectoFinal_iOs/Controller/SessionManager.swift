@@ -27,7 +27,6 @@ class SessionManager {
            let delegate = scene.delegate as? SceneDelegate,
            let window = delegate.window {
             
-            // Transición opcional animada
             UIView.transition(with: window, duration: 0.5, options: .transitionFlipFromLeft, animations: {
                 window.rootViewController = loginVC
             }, completion: nil)
