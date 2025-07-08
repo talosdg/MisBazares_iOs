@@ -57,6 +57,10 @@ class ViewController: UIViewController {
                 let usuarioServer = json["usuario"] as? String ?? ""
 
                 DispatchQueue.main.async {
+                    // Guardar sesión
+                    UserDefaults.standard.set(true, forKey: "sesionActiva")
+                    UserDefaults.standard.set(usuarioServer, forKey: "usuarioActual")
+                    UserDefaults.standard.set(rol, forKey: "rol")
                     if rol == 2 {
                         // ADMIN
                         SessionManager.esAdmin = true

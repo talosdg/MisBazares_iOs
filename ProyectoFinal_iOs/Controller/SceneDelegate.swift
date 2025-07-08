@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreData
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -18,6 +19,46 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let _ = (scene as? UIWindowScene) else { return }
+        let sesionActiva = UserDefaults.standard.bool(forKey: "sesionActiva")
+
+        if sesionActiva {
+            let rol = UserDefaults.standard.integer(forKey: "rol")
+            let usuario = UserDefaults.standard.string(forKey: "usuarioActual") ?? ""
+
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            var rootVC: UIViewController
+
+            if rol == 2 {
+                // ADMIN
+                SessionManager.esAdmin = true
+                SessionManager.usuarioActual = usuario
+                rootVC = storyboard.instantiateViewController(withIdentifier: "MainTabBarController")
+            } else {
+                // VENDEDOR
+                SessionManager.esAdmin = false
+                SessionManager.usuarioActual = usuario
+
+                let context = DataManager.shared.persistentContainer.viewContext
+                let fetchRequest: NSFetchRequest<Vendedores> = Vendedores.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "nombre == %@", usuario)
+
+                if let resultados = try? context.fetch(fetchRequest), let vendedor = resultados.first {
+                    SessionManager.shared.vendedorActual = vendedor
+                }
+
+                rootVC = storyboard.instantiateViewController(withIdentifier: "SellerTabBarController")
+            }
+
+            // Configurar rootViewController
+            if let windowScene = scene as? UIWindowScene {
+                let window = UIWindow(windowScene: windowScene)
+                window.rootViewController = rootVC
+                self.window = window
+                window.makeKeyAndVisible()
+                return // IMPORTANTE: salir aquí para no mostrar login
+            }
+        }
+
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

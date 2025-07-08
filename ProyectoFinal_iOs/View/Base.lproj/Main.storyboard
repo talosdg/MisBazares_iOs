@@ -291,7 +291,7 @@
             </objects>
             <point key="canvasLocation" x="3153.4351145038167" y="537.32394366197184"/>
         </scene>
-        <!--Salir-->
+        <!--Cerrar sesión-->
         <scene sceneID="VRS-Ur-1WP">
             <objects>
                 <viewController storyboardIdentifier="LogoutView" id="Lng-yS-jVB" customClass="ExitController" customModule="ProyectoFinal_iOs" customModuleProvider="target" sceneMemberID="viewController">
@@ -301,7 +301,7 @@
                         <viewLayoutGuide key="safeArea" id="SRF-sj-MuU"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Salir" image="rectangle.portrait.and.arrow.right" catalog="system" id="gEs-dz-U0L"/>
+                    <tabBarItem key="tabBarItem" title="Cerrar sesión" image="rectangle.portrait.and.arrow.right" catalog="system" id="gEs-dz-U0L"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uSZ-9S-Odw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

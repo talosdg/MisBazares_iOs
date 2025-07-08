@@ -8,18 +8,19 @@
 import Foundation
 import UIKit
 
+import UIKit
+
 class ExitController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
         showExitAlert()
     }
     
     func showExitAlert() {
         let alert = UIAlertController(
-            title: "Cerrar aplicación",
-            message: "¿Deseas salir de la aplicación?",
+            title: "Cerrar sesión",
+            message: "¿Deseas cerrar tu sesión?",
             preferredStyle: .alert
         )
 
@@ -28,14 +29,30 @@ class ExitController: UIViewController {
             self.tabBarController?.selectedIndex = 0
         }))
 
-        alert.addAction(UIAlertAction(title: "Salir", style: .destructive, handler: { _ in
-            // Forzar salida (solo para pruebas)
-            exit(0)
+        alert.addAction(UIAlertAction(title: "Cerrar sesión", style: .destructive, handler: { _ in
+            self.cerrarSesion()
         }))
         
-        // Evita mostrar múltiples veces la alerta si el usuario vuelve
         if self.presentedViewController == nil {
             self.present(alert, animated: true)
+        }
+    }
+
+    func cerrarSesion() {
+        // Limpiar UserDefaults
+        UserDefaults.standard.removeObject(forKey: "sesionActiva")
+        UserDefaults.standard.removeObject(forKey: "usuarioActual")
+        UserDefaults.standard.removeObject(forKey: "rol")
+        
+        // Volver al Login 
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginView") as? ViewController {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let sceneDelegate = windowScene.delegate as? SceneDelegate,
+               let window = sceneDelegate.window {
+                window.rootViewController = loginVC
+                window.makeKeyAndVisible()
+            }
         }
     }
 }
